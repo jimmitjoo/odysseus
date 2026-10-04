@@ -37,11 +37,11 @@ const CUSTOM_THEMES_KEY = 'odysseus-custom-themes';
 
 const FONT_MAP = {
   mono: "'Fira Code', monospace",
-  sans: "system-ui, -apple-system, 'Segoe UI', sans-serif",
+  sans: "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
   serif: "Georgia, 'Times New Roman', serif",
   opendyslexic: "'OpenDyslexic', sans-serif",
 };
-const DEFAULT_FONT = 'mono';
+const DEFAULT_FONT = 'sans';
 const DEFAULT_DENSITY = 'comfortable';
 const MAX_CUSTOM_THEMES = 8;
 

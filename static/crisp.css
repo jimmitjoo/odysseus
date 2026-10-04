@@ -1,0 +1,318 @@
+/* ============================================================
+ * crisp.css: lokal förfining ovanpå style.css (laddas sist)
+ *
+ * Ändrar inte markup eller beteende. Allt härleds från temats egna
+ * variabler (--fg, --bg, --panel, --red) så att varje tema, ljust
+ * som mörkt, får samma hierarki. Inter för gränssnittet, Fira Code
+ * bara där tecknen bär betydelse (kod, modellnamn, mätvärden).
+ * ============================================================ */
+
+:root {
+  --font-ui: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Textnivåer: all text ligger på fg eller ink-2 (WCAG AA 4.5:1). ink-3 är bara för
+     ikoner och andra grafiska element (3:1). */
+  --ink-2: color-mix(in oklab, var(--fg) 74%, var(--bg));
+  --ink-3: color-mix(in oklab, var(--fg) 56%, var(--bg));
+  --hair: color-mix(in oklab, var(--fg) 11%, var(--bg));
+  --hair-strong: color-mix(in oklab, var(--fg) 18%, var(--bg));
+  --wash: color-mix(in oklab, var(--fg) 5%, transparent);
+  --wash-2: color-mix(in oklab, var(--fg) 8%, transparent);
+  --accent-wash: color-mix(in oklab, var(--red) 13%, transparent);
+  --focus: var(--accent-ink);
+  /* Accent som text: blandad mot fg, så den mörknar i ljusa teman och ljusnar i
+     mörka. Rå --red (t.ex. guld #c5ac4a på ljus botten, 2.2:1) räcker inte för text. */
+  --accent-ink: color-mix(in oklab, var(--red) 45%, var(--fg));
+
+  /* style.css har fasta grå (#888, #6b7280) för dämpad text, som inte följer temat
+     och faller under 4.5:1 på flera. Koppla dem till temats egen nivå. */
+  --color-muted: var(--ink-2);
+  --color-muted-alt: var(--ink-2);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-1: 0 1px 2px color-mix(in oklab, var(--fg) 6%, transparent),
+              0 6px 20px -8px color-mix(in oklab, var(--fg) 14%, transparent);
+  --shadow-2: 0 2px 6px color-mix(in oklab, var(--fg) 8%, transparent),
+              0 24px 64px -16px color-mix(in oklab, var(--fg) 28%, transparent);
+}
+
+/* ── Bas ──────────────────────────────────────────────── */
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv05', 'cv08';          /* Inter: rakare l och 0 */
+}
+
+::selection { background: color-mix(in oklab, var(--red) 30%, transparent); color: inherit; }
+textarea, input { caret-color: var(--red); }
+
+/* Kod, modellnamn och mätvärden behåller monospace. */
+code, pre, kbd, samp, .hljs,
+#model-picker-label, .model-picker-btn,
+.chat-context-pill, .ctx-ring-pct { font-family: var(--font-mono); }
+.role-timestamp, .chat-meta-count, .msg-footer { font-variant-numeric: tabular-nums; }
+
+/* Ett fokusläge för allt som går att nå med tangentbordet. */
+:where(button, a, summary, select, [role="button"], [tabindex]:not([tabindex="-1"]), .list-item):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Diskreta scrollbars i stället för accentfärgade. */
+* { scrollbar-width: thin; scrollbar-color: var(--hair-strong) transparent; }
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--hair-strong);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--ink-3); }
+}
+
+/* ── Sidofält ─────────────────────────────────────────── */
+
+.sidebar {
+  border: 0;
+  border-right: 1px solid var(--hair);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.sidebar-brand-title {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--accent-ink);
+}
+
+.sidebar .sidebar-inner .list-item,
+.sidebar .sidebar-inner .section-title {
+  min-height: 32px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+.sidebar .sidebar-inner .list-item .grow,
+.sidebar .sidebar-inner .section-title,
+.sidebar .sidebar-inner .section-title-label {
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.006em;
+  text-transform: none;
+}
+.sidebar .sidebar-inner .list-item > svg,
+.sidebar .sidebar-inner .section-title > svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--ink-3);
+  transition: color 140ms var(--ease-out);
+}
+.sidebar .section-icon,
+.sidebar .sidebar-action-icon { color: var(--ink-3); stroke: currentColor; }
+.sidebar #sidebar-new-chat-btn > svg { color: var(--accent-ink); }
+.sidebar .sidebar-inner .list-item:hover,
+.sidebar .sidebar-inner .section-header-flex:hover .section-title {
+  background: var(--wash);
+  color: var(--fg);
+}
+.sidebar .sidebar-inner .list-item:hover > svg,
+.sidebar .sidebar-inner .section-header-flex:hover .section-title > svg { color: var(--fg); }
+.sidebar .sidebar-inner .list-item.active,
+.sidebar .sidebar-inner .list-item[aria-current="true"] {
+  background: var(--accent-wash);
+  color: var(--fg);
+}
+
+.sidebar-user-bar { font-family: var(--font-ui); font-size: 13px; color: var(--ink-2); }
+.user-bar-avatar { opacity: 1; color: var(--ink-2); font-size: 11px; }
+
+/* ── Chattens topprad ─────────────────────────────────── */
+
+.chat-meta-overlay { font-family: var(--font-ui); font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.chat-meta-count, .chat-context-pill { color: var(--ink-2); }
+
+/* ── Välkomstvy ───────────────────────────────────────── */
+
+.welcome-name {
+  font-family: var(--font-ui);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+.welcome-sub, .welcome-tip { font-family: var(--font-ui); letter-spacing: -0.005em; }
+.welcome-tip { line-height: 1.5; text-wrap: balance; }
+/* style.css dämpar med både färg och opacity (0.6 respektive 0.2) och använder
+   opacity: 0 för att dölja raderna på låga skärmar, så höjningen gäller bara där de visas. */
+@media (min-height: 501px) {
+  #welcome-screen .welcome-sub { opacity: 1; color: var(--ink-2); font-size: 15px; }
+}
+@media (min-height: 651px) {
+  #welcome-screen .welcome-tip { opacity: 1; color: var(--ink-2); font-size: 13px; }
+}
+.incognito-btn {
+  opacity: 1;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  border: 1px solid var(--hair);
+  background: transparent;
+  transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), border-color 140ms var(--ease-out);
+}
+.incognito-btn:hover { background: var(--wash); color: var(--fg); border-color: var(--hair-strong); }
+
+/* ── Inmatning ────────────────────────────────────────── */
+
+.chat-input-bar {
+  border: 1px solid var(--hair);
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--shadow-1);
+  transition: border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+}
+.chat-input-bar:focus-within { border-color: var(--hair-strong); }
+#message {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+}
+#message::placeholder { color: var(--ink-2); opacity: 1; }
+
+.mode-toggle {
+  border: 0;
+  background: var(--wash-2);
+  border-radius: 9px;
+  padding: 2px;
+}
+.mode-toggle-btn {
+  border: 0;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  border-radius: 7px;
+  transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+}
+.mode-toggle .mode-toggle-btn + .mode-toggle-btn { border-left: 0; }
+.mode-toggle-btn.active {
+  background: var(--panel);
+  color: var(--fg);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--fg) 12%, transparent),
+              0 0 0 1px color-mix(in oklab, var(--fg) 6%, transparent);
+}
+.send-btn { border: 0; border-radius: 10px; transition: transform 120ms var(--ease-out), filter 140ms var(--ease-out); }
+.send-btn:hover { filter: brightness(0.97); }
+.send-btn:active { transform: scale(0.96); }
+.model-picker-btn { font-size: 12px; color: var(--ink-2); border-radius: 6px; }
+.model-picker-btn:hover { background: var(--wash); color: var(--fg); }
+
+/* ── Meddelanden ──────────────────────────────────────── */
+
+.msg .role { font-family: var(--font-ui); font-size: 13px; font-weight: 600; letter-spacing: -0.005em; }
+.msg .role-timestamp { font-weight: 400; color: var(--ink-2); }
+
+.msg .body {
+  font-family: var(--font-ui);
+  font-size: 15.5px;
+  line-height: 1.65;
+  letter-spacing: -0.006em;
+  color: var(--fg);
+}
+.msg .body > :first-child { margin-top: 0; }
+
+/* Rubriker och betoning i textens egen färg. Syntaxfärgerna hör hemma i kod. */
+.msg h1, .msg h2, .msg h3, .msg h4, .msg h5, .msg h6 {
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-weight: 650;
+  letter-spacing: -0.018em;
+  line-height: 1.3;
+  margin: 1.5em 0 0.45em;
+  text-wrap: balance;
+}
+.msg h1 { font-size: 1.32em; }
+.msg h2 { font-size: 1.18em; }
+.msg h3 { font-size: 1.05em; }
+.msg h4, .msg h5, .msg h6 { font-size: 1em; }
+.msg strong, .msg b { color: inherit; font-weight: 620; }
+.msg em, .msg i,
+.msg :is(strong, b) :is(em, i), .msg :is(em, i) :is(strong, b) { color: inherit; }
+.msg .body li::marker { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.msg .body a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--red) 65%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+.msg .body a:hover { text-decoration-color: currentColor; }
+
+.msg .body :not(pre) > code {
+  font-size: 0.86em;
+  background: var(--wash-2);
+  border-radius: 5px;
+  padding: 0.12em 0.38em;
+  color: inherit;
+}
+.msg .body blockquote {
+  margin: 1em 0;
+  padding: 0.7em 1em;
+  border: 0;
+  border-radius: 10px;
+  background: var(--wash);
+  color: var(--ink-2);
+  font-style: normal;
+}
+.msg .body blockquote > :last-child { margin-bottom: 0; }
+.msg .body hr { border: 0; border-top: 1px solid var(--hair); margin: 1.6em 0; }
+.msg .body table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.msg .body th, .msg .body td { border: 0; border-bottom: 1px solid var(--hair); padding: 0.45em 0.8em; }
+.msg .body th { font-weight: 600; text-align: left; }
+
+.msg-footer { color: var(--ink-2); font-family: var(--font-ui); font-size: 12px; }
+.msg-action-btn { color: var(--ink-2); border-radius: 6px; transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out); }
+.msg-action-btn:hover { background: var(--wash); color: var(--fg); }
+
+/* Mätvärden i sidfoten och kontextringen: style.css använder --color-muted (#888)
+   och opacity, som faller under 4.5:1 på flera teman. Hover-färgen behålls. */
+.msg-footer :is(.response-metrics, .metrics-divider, .ctx-divider) { opacity: 1; color: var(--ink-2); }
+.ctx-ring { opacity: 1; }
+.ctx-ring .ctx-ring-pct { color: var(--ink-2); }
+
+/* ── Modaler och inställningar ────────────────────────── */
+
+.modal-close, .close-btn, .minimize-btn { color: var(--ink-2); }
+.modal-close:hover, .close-btn:hover, .minimize-btn:hover { color: var(--fg); }
+.admin-toggle-sub { color: var(--ink-2); }
+
+.modal-header h4 { color: var(--accent-ink); letter-spacing: -0.012em; }
+.settings-nav-item { color: var(--ink-2); }
+.settings-nav-item.active { color: var(--accent-ink); }
+.settings-sidebar-label {
+  opacity: 1;
+  color: var(--ink-2);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+}
+.admin-btn-add { background: var(--accent-ink); color: var(--panel); }
+.admin-btn-add:hover { background: color-mix(in oklab, var(--accent-ink) 85%, var(--fg)); }
+/* "(Endpoint)" dämpas med inline opacity: 0.45 i index.html; ersätt med en läsbar nivå. */
+.admin-card h2 > span[style*="opacity"] { opacity: 1 !important; color: var(--ink-2); }
+
+/* ── Respekt för rörelsekänslighet ────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; }
+}
