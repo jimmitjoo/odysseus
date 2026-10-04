@@ -260,3 +260,36 @@ def test_tool_layer_emits_partial_notice_and_parses_full(monkeypatch):
         json.dumps({"url": "https://example.com/big.txt", "full": True}), ctx={}
     ))
     assert calls["max_bytes"] == WEB_FETCH_HARD_MAX_BYTES
+
+
+def _minimal_pdf(text: str) -> bytes:
+    """A one-page PDF whose content stream draws `text` in Helvetica."""
+    stream = f"BT /F1 12 Tf 72 720 Td ({text}) Tj ET".encode()
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+        b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+        b"<< /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out = b"%PDF-1.4\n"
+    offsets = []
+    for i, obj in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out += b"%d 0 obj\n" % i + obj + b"\nendobj\n"
+    xref = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+    out += b"".join(b"%010d 00000 n \n" % o for o in offsets)
+    out += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objects) + 1, xref)
+    return out
+
+
+def test_pdf_text_is_extracted_with_default_dependencies(monkeypatch, no_cache):
+    # pdfminer.six is not in requirements.txt, so the Docker image has no
+    # pdfminer and every web PDF came back empty. pypdf is a hard dependency.
+    body = _minimal_pdf("Odysseus PDF fixture")
+    _patch_stream(monkeypatch, _FakeStream(body, content_type="application/pdf"))
+    r = content_mod.fetch_webpage_content("https://example.com/paper.pdf")
+    assert r["success"] is True
+    assert "Odysseus PDF fixture" in r["content"]
