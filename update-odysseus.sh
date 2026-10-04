@@ -74,4 +74,5 @@ try: print(urllib.request.urlopen("http://localhost:7000/",timeout=10).status)
 except urllib.error.HTTPError as e: print(e.code)' 2>/dev/null | tail -1)
 case "$code" in 2*|3*|401) ;; *) rollback "appen svarar inte (HTTP $code)";; esac
 
+git push -q --force-with-lease fork "$BRANCH" || echo "OBS: kunde inte pusha till forken (uppdateringen är ändå klar)"
 log "Klart: $(git log -1 --format='%h %s')"
