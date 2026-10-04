@@ -226,3 +226,26 @@ def test_service_searxng_failed_unpinned_retry_keeps_pinned_results(monkeypatch)
 
     assert len(calls) == 2
     assert results[0]["url"] == first["url"]
+
+
+def test_service_searxng_query_tokens_keep_non_ascii_letters():
+    # [a-z0-9]+ split "räksmörgås" into fragments under four characters and
+    # dropped it, and turned "Öland" into "land".
+    assert providers._query_tokens("räksmörgås recept") == {"räksmörgås", "recept"}
+    assert providers._query_tokens("fiskeställen Öland") == {"fiskeställen", "öland"}
+    assert providers._query_tokens("Straße größe") == {"straße", "größe"}
+
+
+def test_service_searxng_non_ascii_query_filler_still_triggers_retry(monkeypatch):
+    # With ASCII-only tokens "Öland" became "land", which this filler mentions,
+    # so the gate saw a match and never retried.
+    filler = _searxng_result("https://example.com/horn-lake", "Horn Lake", "Find land for sale")
+    relevant = _searxng_result("https://example.se/fiske", "Fiske på Öland", "Bästa fiskeställen")
+    calls, fake_get = _fake_searxng_get([[filler], [relevant]])
+    _patch_searxng(monkeypatch, {"search_safesearch": "strict"}, fake_get)
+
+    results = providers.searxng_search_api("fiskeställen Öland", count=1)
+
+    assert len(calls) == 2
+    assert "language" not in calls[1]
+    assert results[0]["url"] == relevant["url"]
