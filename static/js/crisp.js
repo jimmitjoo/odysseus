@@ -243,6 +243,74 @@ function humanizeSchedules(root) {
   }
 }
 
+// ── 7. E-postens verktygsrad ──────────────────────────────────────────
+// Tolv kontroller låg ovanför första mejlet. Nu: konto + åtgärder överst,
+// sökfält i full bredd med en Filters-knapp, och mapp/filter/val/växlar i en
+// rad som fälls ut. Befintliga element flyttas (de behåller sina lyssnare).
+// E-postfönstret byggs om vid varje öppning, så detta körs om då.
+
+const FILTERS_KEY = 'crisp-email-filters-open';
+// Tags-knappen har redan text; de andra två är bara ikoner och får en etikett.
+const FILTER_LABELS = { 'email-undone-btn': 'Not done', 'email-attach-btn': 'Attachments', 'email-tags-toggle-btn': null };
+
+function emailFiltersActive(modal) {
+  const folder = modal.querySelector('#email-lib-folder');
+  const filterBtn = modal.querySelector('#email-filter-btn');
+  return (folder && folder.selectedIndex > 0)
+    || (filterBtn && !/^\s*all\b/i.test(filterBtn.textContent))
+    || Object.keys(FILTER_LABELS).some(id => id !== 'email-tags-toggle-btn' && modal.querySelector('#' + id)?.classList.contains('active'));
+}
+
+function tidyEmailToolbar() {
+  const modal = document.getElementById('email-lib-modal');
+  const toolbar = modal?.querySelector('.memory-toolbar:not([data-crisp])');
+  if (!toolbar) {
+    if (modal) modal.querySelector('#crisp-email-filters-btn')?.classList.toggle('crisp-has-active', emailFiltersActive(modal));
+    return;
+  }
+  const filters = toolbar.querySelector('.memory-category-filters');
+  const searchRow = toolbar.querySelector('.email-search-row');
+  const accounts = modal.querySelector('.email-accounts-row');
+  const compose = modal.querySelector('#email-lib-compose-btn');
+  if (!filters || !searchRow || !accounts || !compose) return;
+  toolbar.dataset.crisp = '1';
+
+  // Uppdatera och inställningar upp bredvid New.
+  for (const id of ['email-lib-refresh-btn', 'email-lib-settings-btn']) {
+    const b = modal.querySelector('#' + id);
+    if (b) accounts.insertBefore(b, compose);
+  }
+  // Växlarna från sökfältet ner i filterraden, med synlig text.
+  for (const [id, label] of Object.entries(FILTER_LABELS)) {
+    const b = modal.querySelector('#' + id);
+    if (!b) continue;
+    if (label) b.dataset.crispLabel = label;
+    filters.appendChild(b);
+  }
+  // Sökraden först, filterraden under den.
+  toolbar.insertBefore(searchRow, filters);
+  filters.id = filters.id || 'crisp-email-filters';
+  filters.classList.add('crisp-email-filters');
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'crisp-email-filters-btn';
+  btn.className = 'memory-toolbar-btn crisp-email-filters-btn';
+  btn.setAttribute('aria-controls', filters.id);
+  btn.setAttribute('aria-label', 'Filters');
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="17" x2="14" y2="17"/></svg><span>Filters</span>';
+  const setOpen = open => {
+    modal.classList.toggle('crisp-filters-open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    try { localStorage.setItem(FILTERS_KEY, open ? '1' : '0'); } catch {}
+  };
+  btn.addEventListener('click', () => setOpen(!modal.classList.contains('crisp-filters-open')));
+  searchRow.appendChild(btn);
+  let open = false; try { open = localStorage.getItem(FILTERS_KEY) === '1'; } catch {}
+  setOpen(open || emailFiltersActive(modal));
+  btn.classList.toggle('crisp-has-active', emailFiltersActive(modal));
+}
+
 // ── 5. Sidofältets grupper ────────────────────────────────────────────
 // Verktygslistan har inte längre någon rubrik att fälla ihop med, så ett
 // sparat "ihopfällt" läge får inte dölja den.
@@ -294,7 +362,7 @@ const observer = new MutationObserver(records => {
       else if (!nowHidden && had.includes('hidden')) cancelExit(t);
     }
   }
-  if (!syncQueued) { syncQueued = true; requestAnimationFrame(() => { syncQueued = false; syncDialogs(); tuneInk(); keepToolsOpen(); }); }
+  if (!syncQueued) { syncQueued = true; requestAnimationFrame(() => { syncQueued = false; syncDialogs(); tuneInk(); keepToolsOpen(); tidyEmailToolbar(); }); }
 });
 observer.observe(document.documentElement, {
   subtree: true, childList: true, attributes: true, attributeOldValue: true, attributeFilter: ['class', 'style', 'hidden'],

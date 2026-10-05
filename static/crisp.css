@@ -494,6 +494,70 @@ code, pre, kbd, samp, .hljs { font-family: var(--font-mono); }
 @keyframes crisp-drawer-in       { from { translate: -24px 0; opacity: 0; } }
 @keyframes crisp-drawer-in-right { from { translate: 24px 0; opacity: 0; } }
 
+/* E-postens verktygsrad (ordnas om av crisp.js). */
+#email-lib-modal .email-accounts-row { gap: 6px; align-items: center; }
+#email-lib-modal .email-accounts-row :is(#email-lib-refresh-btn, #email-lib-settings-btn) {
+  width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; background: transparent; color: var(--ink-2); border-radius: 8px;
+}
+#email-lib-modal .email-accounts-row :is(#email-lib-refresh-btn, #email-lib-settings-btn):hover { background: var(--wash); color: var(--fg); }
+#email-lib-modal .email-search-row { align-items: center !important; }
+#email-lib-modal .email-search-row .email-search-wrap { flex: 1; }
+.crisp-email-filters-btn {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 12px;
+  font-family: var(--font-ui); font-size: 12.5px; font-weight: 500;
+  color: var(--ink-2); background: transparent;
+  border: 1px solid var(--hair); border-radius: 9px;
+  transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+.crisp-email-filters-btn:hover, #email-lib-modal.crisp-filters-open .crisp-email-filters-btn { background: var(--wash); color: var(--fg); }
+.crisp-email-filters-btn.crisp-has-active::after {
+  content: ''; position: absolute; top: 6px; right: 6px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent-ink);
+}
+#email-lib-modal:not(.crisp-filters-open) .crisp-email-filters { display: none !important; }
+#email-lib-modal.crisp-filters-open .crisp-email-filters {
+  flex-wrap: wrap; gap: 6px; padding-top: 2px;
+  animation: crisp-filters-in var(--dur-2) var(--ease-out);
+}
+@keyframes crisp-filters-in { from { opacity: 0; translate: 0 -4px; } }
+@media (max-width: 768px) {
+  .crisp-email-filters-btn { width: 44px; height: 44px; padding: 0; justify-content: center; }
+  .crisp-email-filters-btn span { display: none; }
+  #email-lib-modal .crisp-email-filters > :is(#email-lib-folder, #email-filter-picker) { flex: 1 1 calc(50% - 6px) !important; min-width: 0 !important; }
+  #email-lib-modal .crisp-email-filters #email-filter-btn { width: 100%; }
+  #email-lib-modal #email-lib-grid .doclib-card.memory-item { border-radius: 0; }
+}
+/* Växlarna får synlig text i filterraden. */
+#email-lib-modal .memory-toolbar[data-crisp] { max-height: none; overflow: visible; }
+/* Klockan var placerad för fyra ikoner i fältet; nu är den ensam längst till höger. */
+#email-lib-modal .email-search-wrap #email-reminder-btn { right: 8px !important; left: auto !important; }
+/* Oläst: fetare ämnesrad i stället för en accentring runt hela raden. */
+#email-lib-modal #email-lib-grid .doclib-card.memory-item.email-card-unread { box-shadow: inset 0 -1px 0 var(--hair); }
+#email-lib-modal #email-lib-grid .doclib-card.memory-item.email-card-unread:hover { box-shadow: none; }
+#email-lib-modal #email-lib-grid .email-card-unread .memory-item-title { font-weight: 650; }
+/* Växlarna låg absolut placerade inuti sökfältet. */
+#email-lib-modal .crisp-email-filters :is(#email-undone-btn, #email-attach-btn, #email-tags-toggle-btn) {
+  position: static !important; inset: auto !important; transform: none !important; margin: 0 !important;
+}
+#email-lib-modal .crisp-email-filters :is([data-crisp-label], #email-tags-toggle-btn) {
+  width: auto !important; height: 28px !important; padding: 0 10px !important;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-ui); font-size: 12px; color: var(--ink-2);
+  border: 1px solid var(--hair); border-radius: 999px; background: transparent;
+}
+#email-lib-modal .crisp-email-filters [data-crisp-label]::after { content: attr(data-crisp-label); }
+#email-lib-modal .crisp-email-filters :is([data-crisp-label], #email-tags-toggle-btn).active { background: var(--accent-wash); border-color: transparent; color: var(--accent-ink); }
+
+/* Olästräknare och mobilens "New"-knapp: accent som yta behöver den mörkare nivån. */
+.email-lib-unread-badge { background: var(--accent-ink); color: var(--panel); }
+@media (max-width: 768px) {
+  #email-lib-modal .email-lib-fab { background: var(--accent-ink); color: var(--panel); }
+  #email-lib-modal .email-lib-fab-label { color: var(--panel); }
+}
+
 /* ── Delade listor (Memory, Documents, Automations) ───── */
 /* Metatext dämpades med opacity 0.4 (under 2:1). */
 .memory-item-meta { opacity: 1; color: var(--ink-2); font-size: 11.5px; }
