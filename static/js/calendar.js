@@ -617,6 +617,8 @@ async function _createEventReminder(ev, dueDate) {
 
 function _collapseSidebar() {
   const sb = document.getElementById('sidebar');
+  // Local: on wide screens the calendar fits next to the sidebar, so leave it alone.
+  if (window.innerWidth >= 1280) return;
   if (sb && !sb.classList.contains('hidden')) {
     // Only remember the prior state on desktop. On mobile the sidebar is an
     // overlay that the user intentionally swipes/taps away when the tool

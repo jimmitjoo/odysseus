@@ -194,7 +194,65 @@ function tuneInk() {
   root.setProperty('--ink-2', ink(least(ink, 4.6, 60, 100)));
   root.setProperty('--ink-3', ink(least(ink, 3.1, 45, 100)));
   root.setProperty('--accent-ink', accent(100 - least(x => accent(100 - x), 4.6, 0, 100)));
+  root.setProperty('--ink-pole', lum(bg) > 0.18 ? '#000' : '#fff');
 }
+
+// ── 6. Läsbara scheman i Automations ──────────────────────────────────
+// "Cron: 0 */2 * * *" -> "Every 2 hours". Originalet ligger kvar i title.
+
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const pad = n => String(n).padStart(2, '0');
+
+function humanizeCron(expr) {
+  const f = expr.trim().split(/\s+/);
+  if (f.length !== 5) return null;
+  const [m, h, dom, mon, dow] = f;
+  const isNum = x => /^\d+$/.test(x);
+  const step = x => (x.match(/^\*\/(\d+)$/) || [])[1];
+  if (dom !== '*' || mon !== '*') return null;
+  const times = () => (isNum(m) && /^\d+(,\d+)*$/.test(h))
+    ? h.split(',').map(x => `${pad(x)}:${pad(m)}`) : null;
+  const join = arr => arr.length < 2 ? arr[0] : arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
+  if (dow === '*') {
+    if (m === '*' && h === '*') return 'Every minute';
+    if (step(m) && h === '*') return step(m) === '1' ? 'Every minute' : `Every ${step(m)} minutes`;
+    if (isNum(m) && h === '*') return m === '0' ? 'Every hour' : `Every hour at :${pad(m)}`;
+    if (isNum(m) && step(h)) return step(h) === '1' ? 'Every hour' : `Every ${step(h)} hours`;
+    const t = times(); if (t) return `Daily at ${join(t)}`;
+    return null;
+  }
+  const t = times();
+  if (t && /^[0-6](,[0-6])*$/.test(dow)) return `${join(dow.split(',').map(d => DAYS[+d]))} at ${join(t)}`;
+  if (t && dow === '1-5') return `Weekdays at ${join(t)}`;
+  return null;
+}
+
+function humanizeSchedules(root) {
+  const metas = root.querySelectorAll ? root.querySelectorAll('#tasks-modal .memory-item-meta') : [];
+  for (const el of metas) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const t = walker.currentNode;
+      const m = t.nodeValue.match(/Cron:\s*([^·]+?)\s*(?=·|$)/);
+      if (!m) continue;
+      const nice = humanizeCron(m[1]);
+      if (!nice) continue;
+      t.nodeValue = t.nodeValue.replace(m[0], nice + ' ');
+      el.title = 'Cron: ' + m[1].trim();
+    }
+  }
+}
+
+// ── 5. Sidofältets grupper ────────────────────────────────────────────
+// Verktygslistan har inte längre någon rubrik att fälla ihop med, så ett
+// sparat "ihopfällt" läge får inte dölja den.
+function keepToolsOpen() {
+  const sec = document.getElementById('tools-section');
+  if (sec && sec.classList.contains('collapsed')) sec.classList.remove('collapsed');
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('#settings-open-theme')) document.getElementById('tool-theme-btn')?.click();
+});
 
 // ── Observatör ────────────────────────────────────────────────────────
 
@@ -209,7 +267,7 @@ const observer = new MutationObserver(records => {
   for (const r of records) {
     const t = r.target;
     if (r.type === 'childList') {
-      for (const n of r.addedNodes) if (n.nodeType === 1) humanizeIn(n);
+      for (const n of r.addedNodes) if (n.nodeType === 1) { humanizeIn(n); humanizeSchedules(n.parentElement || n); }
       if (t.nodeType === 1 && t.classList.contains('agent-thread-tool')) humanizeIn(t);
       for (const n of r.removedNodes) {
         if (n.nodeType !== 1 || n.classList.contains('crisp-ghost')) continue;
@@ -236,20 +294,25 @@ const observer = new MutationObserver(records => {
       else if (!nowHidden && had.includes('hidden')) cancelExit(t);
     }
   }
-  if (!syncQueued) { syncQueued = true; requestAnimationFrame(() => { syncQueued = false; syncDialogs(); tuneInk(); }); }
+  if (!syncQueued) { syncQueued = true; requestAnimationFrame(() => { syncQueued = false; syncDialogs(); tuneInk(); keepToolsOpen(); }); }
 });
 observer.observe(document.documentElement, {
   subtree: true, childList: true, attributes: true, attributeOldValue: true, attributeFilter: ['class', 'style', 'hidden'],
 });
 humanizeIn(document.body);
 tuneInk();
+keepToolsOpen();
 
 // Självtest: node --input-type=module -e "import('./static/js/crisp.js')" körs inte i node
 // (DOM krävs), så logiken testas via window.__crispSelfTest() i webbläsaren.
 window.__crispSelfTest = () => {
+  const cron = { '0 */2 * * *': 'Every 2 hours', '0 6,18 * * *': 'Daily at 06:00 and 18:00', '0 * * * *': 'Every hour',
+    '*/15 * * * *': 'Every 15 minutes', '30 8 * * 1-5': 'Weekdays at 08:30', '0 9 * * 1': 'Monday at 09:00', '0 0 1 * *': null,
+    '0 */1 * * *': 'Every hour', '*/1 * * * *': 'Every minute' };
+  const cronOk = Object.entries(cron).map(([i, want]) => [i, humanizeCron(i), humanizeCron(i) === want]);
   const cases = {
     manage_memory: 'Memory', MANAGE_MEMORY: 'Memory', Writing: 'Writing',
     mcp__builtin_browser__browser_navigate: 'Browser navigate', some_new_tool: 'Some new tool',
   };
-  return Object.entries(cases).map(([i, want]) => [i, humanizeTool(i), humanizeTool(i) === want]);
+  return Object.entries(cases).map(([i, want]) => [i, humanizeTool(i), humanizeTool(i) === want]).concat(cronOk);
 };

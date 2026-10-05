@@ -4121,7 +4121,7 @@ async function _cmdTourBrain(args, ctx) {
   const _tab = (name) => document.querySelector(`.memory-tab[data-memory-tab="${name}"]`)?.click();
   const steps = [
     { sel: '#memory-modal .memory-modal-content',
-      text: '<b>Brain</b> is where your memories are. You can edit them, or add new ones under <b>Add</b>. Wow.',
+      text: '<b>Memory</b> is where your memories are. You can edit them, or add new ones under <b>Add</b>. Wow.',
       before: () => _tab('browse'),
       placement: 'center-above' },
     { sel: '#memory-tidy-btn',
@@ -4591,7 +4591,7 @@ async function _cmdTourResearch(args, ctx) {
     const _body = await typewriterReply('That’s Deep Research — hit Start or queue up many. You can also view past research in your ');
     const libLink = document.createElement('button');
     libLink.type = 'button';
-    libLink.textContent = 'Library';
+    libLink.textContent = 'Documents';
     libLink.style.cssText = 'background:none;border:none;padding:0;margin:0;color:var(--accent,var(--red));font:inherit;text-decoration:underline;cursor:pointer;';
     libLink.addEventListener('click', () => {
       if (window.documentModule && window.documentModule.openLibrary) {
