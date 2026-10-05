@@ -30,7 +30,15 @@
   --color-muted: var(--ink-2);
   --color-muted-alt: var(--ink-2);
 
+  /* Ett rörelsesystem: kort återkoppling, något längre för ytor som kommer in,
+     snabbare ut än in, aldrig studs. */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-move: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-1: 120ms;   /* hover, tryck */
+  --dur-2: 180ms;   /* menyer, popovers, tooltips */
+  --dur-3: 240ms;   /* fönster och paneler in */
+  --dur-exit: 170ms;
   --shadow-1: 0 1px 2px color-mix(in oklab, var(--fg) 6%, transparent),
               0 6px 20px -8px color-mix(in oklab, var(--fg) 14%, transparent);
   --shadow-2: 0 2px 6px color-mix(in oklab, var(--fg) 8%, transparent),
@@ -51,9 +59,7 @@ body {
 textarea, input { caret-color: var(--red); }
 
 /* Kod, modellnamn och mätvärden behåller monospace. */
-code, pre, kbd, samp, .hljs,
-#model-picker-label, .model-picker-btn,
-.chat-context-pill, .ctx-ring-pct { font-family: var(--font-mono); }
+code, pre, kbd, samp, .hljs { font-family: var(--font-mono); }
 .role-timestamp, .chat-meta-count, .msg-footer { font-variant-numeric: tabular-nums; }
 
 /* Ett fokusläge för allt som går att nå med tangentbordet. */
@@ -134,6 +140,7 @@ code, pre, kbd, samp, .hljs,
 
 .sidebar-user-bar { font-family: var(--font-ui); font-size: 13px; color: var(--ink-2); }
 .user-bar-avatar { opacity: 1; color: var(--ink-2); font-size: 11px; }
+#user-bar-name { font-size: 12.5px; color: var(--ink-2); opacity: 1; }
 
 /* ── Chattens topprad ─────────────────────────────────── */
 
@@ -213,7 +220,7 @@ code, pre, kbd, samp, .hljs,
 .send-btn { border: 0; border-radius: 10px; transition: transform 120ms var(--ease-out), filter 140ms var(--ease-out); }
 .send-btn:hover { filter: brightness(0.97); }
 .send-btn:active { transform: scale(0.96); }
-.model-picker-btn { font-size: 12px; color: var(--ink-2); border-radius: 6px; }
+.model-picker-btn { font-size: 12.5px; color: var(--ink-2); border-radius: 6px; }
 .model-picker-btn:hover { background: var(--wash); color: var(--fg); }
 
 /* ── Meddelanden ──────────────────────────────────────── */
@@ -293,6 +300,9 @@ code, pre, kbd, samp, .hljs,
 
 /* ── Modaler och inställningar ────────────────────────── */
 
+.tour-hint-text { opacity: 1; }
+.tour-hint-text b { color: var(--accent-ink); }
+
 .modal-close, .close-btn, .minimize-btn { color: var(--ink-2); }
 .modal-close:hover, .close-btn:hover, .minimize-btn:hover { color: var(--fg); }
 .admin-toggle-sub { color: var(--ink-2); }
@@ -310,6 +320,171 @@ code, pre, kbd, samp, .hljs,
 .admin-btn-add:hover { background: color-mix(in oklab, var(--accent-ink) 85%, var(--fg)); }
 /* "(Endpoint)" dämpas med inline opacity: 0.45 i index.html; ersätt med en läsbar nivå. */
 .admin-card h2 > span[style*="opacity"] { opacity: 1 !important; color: var(--ink-2); }
+
+/* ── Fönster: in och ut ───────────────────────────────── */
+
+/* crisp.js sätter .crisp-exit när ett fönster stängs utan egen animation. */
+/* !important: några verktyg (Calendar) döljer med inline display:none. Gäller bara under uttoningen. */
+.modal.hidden.crisp-exit { display: flex !important; pointer-events: none; }
+.crisp-ghost { pointer-events: none !important; }
+.crisp-ghost, .crisp-ghost .modal-content { animation: none !important; }
+/* Fönster som animerar själva: samma tempo som resten. */
+.modal-content.modal-closing { animation-duration: var(--dur-exit) !important; animation-timing-function: var(--ease-in) !important; }
+.modal-content { animation-duration: var(--dur-3); animation-timing-function: var(--ease-out); }
+.modal-content {
+  border-color: var(--hair);
+  box-shadow: var(--shadow-2);
+}
+
+/* Studsande kurvor ersätts med samma lugna utbromsning. */
+.welcome-name { animation-timing-function: var(--ease-out) !important; animation-duration: 420ms !important; }
+.rail-hover-label { transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out); }
+.rail-new-chat svg { transition: transform var(--dur-2) var(--ease-out); }
+.send-btn.anim-spin, .send-btn.anim-launch, .send-btn.anim-land, .send-btn.anim-spin-swap { animation-timing-function: var(--ease-out) !important; }
+
+/* ── Chatt: lugnare meddelanden ───────────────────────── */
+
+/* Assistentens svar står direkt på ytan, som text i ett dokument. */
+.msg.msg-ai {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 4px 0 2px;
+  margin-left: 0;
+  width: 100%;
+  max-width: 100%;
+}
+.msg.msg-ai .body { max-width: 70ch; }
+/* Användarens meddelande som en fylld bubbla utan kant. */
+.msg.msg-user {
+  background: var(--wash-2);
+  border: 0;
+  border-radius: 18px 18px 6px 18px;
+  padding: 9px 14px;
+}
+.msg .role { color: var(--ink-2); }
+.msg { animation-duration: var(--dur-3); animation-timing-function: var(--ease-out); }
+
+/* Sidfoten med åtgärder och mätvärden visas vid hovring eller fokus på
+   enheter med mus. Senaste svaret och pekskärmar visar den alltid. */
+@media (hover: hover) and (pointer: fine) {
+  .msg .msg-footer { opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
+  .msg:hover .msg-footer,
+  .msg:focus-within .msg-footer,
+  .msg.msg-ai:last-of-type .msg-footer { opacity: 1; }
+}
+/* Användarens åtgärder (redigera, ta bort, mer) bredvid bubblan i stället för
+   inuti den, så bubblan inte får en tom rad i botten. Pekskärmar behåller dem i bubblan. */
+@media (hover: hover) and (pointer: fine) {
+  .msg.msg-user { overflow: visible; }
+  .msg.msg-user .msg-footer {
+    position: absolute;
+    right: calc(100% + 4px);
+    bottom: 2px;
+    margin: 0;
+    white-space: nowrap;
+  }
+}
+
+/* Modellnamnet: läsbar text. Logotypen behåller modellens färg som markör. */
+.msg .role.has-logo { color: var(--ink-2) !important; }
+.msg .role.has-logo .role-provider-logo { color: var(--model-dot, var(--ink-3)); }
+
+/* Källor och tankeprocess: lugna, neutrala rutor. */
+.msg .sources-section, .msg .thinking-section {
+  background: var(--wash);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  color: var(--ink-2);
+}
+.msg .sources-section > :first-child, .msg .sources-section > :first-child *,
+.msg .thinking-section > :first-child, .msg .thinking-section > :first-child * { color: var(--ink-2); }
+.msg .body th { color: var(--fg); }
+
+/* Kontextringen finns redan i chattens topprad. */
+.msg-footer .ctx-ring, .msg-footer .ctx-divider { display: none; }
+
+/* Typskala i svaren: tydliga steg mellan nivåerna. */
+.msg h1 { font-size: 1.5em; }
+.msg h2 { font-size: 1.28em; }
+.msg h3 { font-size: 1.12em; }
+
+/* Verktygsanrop i agentens tidslinje: vanlig text, inte versaler. */
+.agent-thread-tool {
+  text-transform: none;
+  letter-spacing: -0.005em;
+  font-family: var(--font-ui);
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--fg);
+}
+.agent-thread-status { color: var(--ink-2); }
+.agent-thread-icon { color: var(--accent-ink); }
+.agent-thread-header { color: var(--ink-2); }
+
+/* ── Inmatning ────────────────────────────────────────── */
+
+.chat-input-bar textarea#message::placeholder { color: var(--ink-2); }
+/* Modellväljaren är ett gränssnittselement, inte kod. */
+#model-picker-label, .model-picker-btn { font-family: var(--font-ui); font-variant-numeric: tabular-nums; }
+.input-icon-btn { border-radius: 8px; color: var(--ink-2); transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out); }
+.input-icon-btn:hover { background: var(--wash); color: var(--fg); }
+
+/* ── E-post: listan som en lista, inte som kort ───────── */
+
+#email-lib-modal .doclib-card.memory-item {
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: inset 0 -1px 0 var(--hair);
+  padding: 10px 12px;
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+#email-lib-modal .doclib-card.memory-item:hover { background: var(--wash); box-shadow: none; }
+#email-lib-modal .memory-item-title { font-size: 13.5px; font-weight: 500; color: var(--fg); letter-spacing: -0.006em; }
+#email-lib-modal .memory-item-meta,
+#email-lib-modal .memory-item-meta > * { font-size: 12px; color: var(--ink-2); }
+#email-lib-stats, .email-account-unread-count { font-size: 11px; color: var(--ink-2); opacity: 1; }
+/* E-postfönstret dämpar sekundär text med opacity mellan 0.58 och 0.7 och halvgenomskinlig fg. */
+#email-lib-modal :is(.memory-item-meta, .email-lib-sync-status, .memory-count) { opacity: 1 !important; }
+#email-lib-modal #email-lib-stats { font-size: 11px; color: var(--ink-2); }
+#email-lib-modal :is(.email-date-section-header, .email-lib-sync-status, .memory-toolbar-btn) { color: var(--ink-2); }
+/* Avsändarnamnet har en inline-färg per kontakt (pastell, ofta under 2:1). */
+#email-lib-modal .email-meta-sender span { color: var(--fg) !important; font-weight: 600; }
+
+/* ── Mobilmenyn: glider in och ut ─────────────────────── */
+/* Menyn göms med bredd 0 och opacity !important, så en vanlig transition
+   kan aldrig köra. En animation när den blir synlig ger inglidningen;
+   crisp.js håller den synlig under utglidningen. */
+@media (max-width: 768px) {
+  .sidebar:not(.hidden) { animation: crisp-drawer-in var(--dur-3) var(--ease-out); }
+  .sidebar.right-side:not(.hidden) { animation-name: crisp-drawer-in-right; }
+  /* Dubblerade klasser: måste slå html.ody-sidebar-off .sidebar.right-side (!important). */
+  html .sidebar.sidebar.crisp-drawer-exit.crisp-drawer-exit {
+    display: flex !important;
+    transform: none !important;
+    width: 80% !important;
+    opacity: var(--crisp-drawer-op) !important;   /* animeras av crisp.js */
+    pointer-events: none !important;
+    animation: none;
+  }
+  #sidebar-backdrop { transition: opacity var(--dur-3) var(--ease-out); }
+}
+@property --crisp-drawer-op { syntax: '<number>'; inherits: false; initial-value: 1; }
+@keyframes crisp-drawer-in       { from { translate: -24px 0; opacity: 0; } }
+@keyframes crisp-drawer-in-right { from { translate: 24px 0; opacity: 0; } }
+
+/* ── Pekskärm: tryckytor på minst 44 px ───────────────── */
+
+@media (pointer: coarse) {
+  .msg-action-btn, .footer-copy-btn, .section-collapse-btn, .list-item-plus-btn,
+  #user-bar-settings, .email-card-nav-btn, .memory-item-btn, .mode-toggle-btn,
+  #model-picker-btn, #incognito-btn, .input-icon-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .sidebar .sidebar-inner .list-item { min-height: 44px; }
+}
 
 /* ── Respekt för rörelsekänslighet ────────────────────── */
 

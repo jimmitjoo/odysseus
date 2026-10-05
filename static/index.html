@@ -247,7 +247,7 @@
   <link rel="preload" as="font" type="font/woff2" crossorigin href="/static/fonts/FiraCode-SemiBold.woff2">
   <link rel="stylesheet" href="/static/style.css?v=20260808startupshell1">
   <!-- Lokal förfining (jimmitjoo/odysseus local/sv-search), laddas efter style.css. -->
-  <link rel="stylesheet" href="/static/crisp.css?v=1">
+  <link rel="stylesheet" href="/static/crisp.css?v=2">
   <link rel="modulepreload" href="/static/app.js?v=20260815toolapproval4">
   <link rel="modulepreload" href="/static/js/chat.js?v=20260815toolapproval4">
   <link rel="modulepreload" href="/static/js/ui.js">
@@ -1094,9 +1094,9 @@
         <div class="chat-input-left">
           <!-- Overflow menu (+) — always first/left -->
           <div class="overflow-wrapper">
-            <button type="button" class="input-icon-btn overflow-plus-btn" id="overflow-plus-btn" title="More tools" aria-label="More tools" aria-haspopup="true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 15 12 9 18 15"/>
+            <button type="button" class="input-icon-btn overflow-plus-btn" id="overflow-plus-btn" title="Attach files and more tools" aria-label="Attach files and more tools" aria-haspopup="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
               <span class="plus-active-dot"></span>
             </button>
@@ -1199,8 +1199,8 @@
         <div class="chat-input-right">
           <!-- Agent / Chat mode toggle -->
           <div class="mode-toggle">
-            <button type="button" class="mode-toggle-btn active" id="mode-agent-btn" aria-pressed="true">Agent</button>
-            <button type="button" class="mode-toggle-btn" id="mode-chat-btn" aria-pressed="false">Chat</button>
+            <button type="button" class="mode-toggle-btn active" id="mode-agent-btn" aria-pressed="true" title="Agent: can use tools like web search, email, calendar and memory">Agent</button>
+            <button type="button" class="mode-toggle-btn" id="mode-chat-btn" aria-pressed="false" title="Chat: answers directly, without tools">Chat</button>
           </div>
           <button type="submit" form="chat-form" class="send-btn newchat-mode" data-mode="newchat" aria-label="New chat">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="send-btn-label">+ New</span>
@@ -2585,6 +2585,7 @@
 <script type="module" src="/static/js/censor.js"></script>
 <script type="module" src="/static/js/settings.js?v=20260815approvalsave1"></script>
 <script type="module" src="/static/js/assistant.js"></script>
+<script type="module" src="/static/js/crisp.js?v=1"></script>  <!-- lokal förfining -->
 <script type="module" src="/static/app.js?v=20260815toolapproval4"></script>  <!-- app.js must be LAST -->
   <script type="module" src="/static/js/init.js?v=20260715freshroot3"></script>
 <script type="module" src="/static/js/a11y.js"></script>

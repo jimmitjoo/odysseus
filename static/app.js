@@ -464,7 +464,8 @@ function initializeEventListeners() {
       } else if (child.classList?.contains('agent-thread')) {
         const lines = ['[Tool calls]'];
         for (const n of child.querySelectorAll('.agent-thread-node')) {
-          const tool = n.querySelector('.agent-thread-tool')?.textContent?.trim() || 'tool';
+          const toolEl = n.querySelector('.agent-thread-tool');
+          const tool = (toolEl?.dataset?.raw || toolEl?.textContent || '').trim() || 'tool';
           const cmd = n.querySelector('.agent-thread-cmd')?.textContent?.trim() || '';
           const output = n.querySelector('.agent-tool-output pre')?.textContent?.trim() || '';
           const status = n.classList.contains('error') ? 'failed' : 'done';
@@ -1869,7 +1870,9 @@ function initializeEventListeners() {
     if (msgInput && !msgInput._odysseusPlanTabToggle) {
       msgInput._odysseusPlanTabToggle = true;
       msgInput.addEventListener('keydown', (e) => {
-        if (e.key !== 'Tab' || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return;
+        // Local (WCAG 2.1.2): Tab must move focus, not toggle plan mode, or keyboard
+        // users can never leave the composer. Plan mode is Alt+P instead.
+        if (!e.altKey || e.code !== 'KeyP' || e.shiftKey || e.ctrlKey || e.metaKey || e.isComposing) return;
         e.preventDefault();
         e.stopPropagation();
         const st = loadToggleState();
@@ -3951,7 +3954,9 @@ function startOdysseusApp() {
       } else {
       // Check if we're already on a fresh empty session (welcome screen visible)
       const isEmptySession = document.getElementById('chat-container')?.classList.contains('welcome-active');
-      if (isEmptySession) {
+      // Local: always show the (muted) send arrow when the composer is empty. The
+      // old "+ New chat" swap in existing chats made the send button change meaning.
+      if (true || isEmptySession) {
         // Already on new chat — show arrow in muted style (ready to type)
         sendBtn.innerHTML = _sendIcon;
         sendBtn.title = 'Send message';

@@ -534,6 +534,11 @@ export function autoResize(textarea) {
   let clone = textarea._resizeClone;
   if (!clone) {
     clone = textarea.cloneNode(false);
+    // Local: the measuring clone must not duplicate #message or be focusable.
+    clone.removeAttribute('id');
+    clone.removeAttribute('autofocus');
+    clone.tabIndex = -1;
+    clone.setAttribute('aria-hidden', 'true');
     clone.style.cssText = getComputedStyle(textarea).cssText;
     clone.style.position = 'absolute';
     clone.style.visibility = 'hidden';
